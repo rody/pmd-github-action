@@ -35,8 +35,7 @@ See [action.yml](action.yml)
 
 ## Examples
 
-### Generate a report file
-
+### Generate and publish a PMD report
 
 ```yaml
 on: [push]
@@ -52,8 +51,8 @@ jobs:
 
       # Generate report
       - name: Generate PMD report
-        id: generate-pmd-reportw
-        uses: rody/pmd-github-action 
+        id: generate-pmd-report
+        uses: rody/pmd-github-action@main
         with:
           reportfile: 'pmd-report.json' # relative to the repo root
           format: 'json'
@@ -61,8 +60,47 @@ jobs:
           # optional:
           # make the action successful even when violations were found
           failOnViolation: false
+    
+      # Publish the report as a Github artifact    
+      - name: Publish PMD report
+        uses: actions/upload-artifact@v2
+        with:
+          name: PMD Report
+          path: 'pmd-report.json'
+          if-no-files-found: ignore
 ```
 
+### Create annotations from the report
+
+[pmd-annotations-github-action](https://github.com/rody/pmd-annotations-github-action) can be used to
+create annotations from a PMD report.
+
+  ``` yaml
+  name: Analyse Source Code
+on: [push]
+
+jobs:
+  analysis:
+    name: Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create PMD Report
+        uses: rody/pmd-github-action@main
+        with:
+          rulesets: 'rulesets/apex/quickstart.xml'
+          reportfile: 'pmd-report.json'
+          format: 'json'
+          failOnViolation: 'false'
+
+      - name: Create PMD annotations
+        uses: rody/pmd-annotations-github-action@main
+        with:
+          reportfile: 'pmd-report.json'
+  ```
+  
 
 ## Alternative
 
